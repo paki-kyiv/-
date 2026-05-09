@@ -194,6 +194,75 @@ body {
   text-shadow: 0 0 10px var(--accent), 0 0 20px var(--accent);
 }
 
+.contact-methods {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: 2rem 0;
+  justify-content: center;
+}
+
+.contact-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  text-decoration: none;
+  color: white;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  border: 2px solid;
+}
+
+.phone-btn {
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 15px var(--accent);
+}
+
+.phone-btn:hover {
+  box-shadow: 0 0 30px var(--accent), 0 0 50px var(--accent);
+  transform: scale(1.05);
+}
+
+.whatsapp-btn {
+  background: #25d366;
+  border-color: #25d366;
+  box-shadow: 0 0 15px #25d366;
+}
+
+.whatsapp-btn:hover {
+  box-shadow: 0 0 30px #25d366, 0 0 50px #25d366;
+  transform: scale(1.05);
+}
+
+.telegram-btn {
+  background: #0088cc;
+  border-color: #0088cc;
+  box-shadow: 0 0 15px #0088cc;
+}
+
+.telegram-btn:hover {
+  box-shadow: 0 0 30px #0088cc, 0 0 50px #0088cc;
+  transform: scale(1.05);
+}
+
+.contact-icon {
+  font-size: 1.5rem;
+}
+
+.contact-text {
+  display: flex;
+  align-items: center;
+}
+
+.working-hours {
+  margin-top: 1.5rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
 .site-footer {
   padding: 1.5rem 0 3rem;
   text-align: center;
@@ -223,5 +292,14 @@ body {
   .gallery img {
     width: 100%;
     margin-bottom: 1rem;
+  }
+
+  .contact-methods {
+    flex-direction: column;
+  }
+
+  .contact-btn {
+    width: 100%;
+    justify-content: center;
   }
 }
