@@ -205,14 +205,30 @@ body {
 .contact-btn {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 1rem 1.5rem;
-  border-radius: 12px;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: 16px;
   text-decoration: none;
   color: white;
   font-weight: 600;
   transition: all 0.3s ease;
   border: 2px solid;
+}
+
+.contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.contact-label {
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
+
+.contact-value {
+  font-size: 1.1rem;
+  font-weight: 700;
 }
 
 .phone-btn {
@@ -223,18 +239,7 @@ body {
 
 .phone-btn:hover {
   box-shadow: 0 0 30px var(--accent), 0 0 50px var(--accent);
-  transform: scale(1.05);
-}
-
-.whatsapp-btn {
-  background: #25d366;
-  border-color: #25d366;
-  box-shadow: 0 0 15px #25d366;
-}
-
-.whatsapp-btn:hover {
-  box-shadow: 0 0 30px #25d366, 0 0 50px #25d366;
-  transform: scale(1.05);
+  transform: translateY(-3px);
 }
 
 .telegram-btn {
@@ -245,16 +250,11 @@ body {
 
 .telegram-btn:hover {
   box-shadow: 0 0 30px #0088cc, 0 0 50px #0088cc;
-  transform: scale(1.05);
+  transform: translateY(-3px);
 }
 
 .contact-icon {
-  font-size: 1.5rem;
-}
-
-.contact-text {
-  display: flex;
-  align-items: center;
+  font-size: 2rem;
 }
 
 .working-hours {
@@ -300,6 +300,6 @@ body {
 
   .contact-btn {
     width: 100%;
-    justify-content: center;
+    justify-content: flex-start;
   }
 }
