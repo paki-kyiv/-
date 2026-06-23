@@ -1,44 +1,26 @@
-// Стандартні дані
-const defaultData = {
-  live: [
-    { weight: "500 г", price: "450 грн" },
-    { weight: "1 кг", price: "850 грн" },
-    { weight: "2 кг", price: "1600 грн" }
-  ],
-  cooked: [
-    { portion: "1 кг", price: "1500 грн" },
-    { portion: "3 кг", price: "4000 грн" },
-    { portion: "5 кг", price: "6000 грн" }
-  ],
-  extras: [
-    { name: "Пиво", description: "Холодне пиво до раків. Відмінний варіант для компанії.", price: "від 60 грн за пляшку" },
-    { name: "Закуски", description: "До пива та раків: солоні крекери, горішки, лимон.", price: "від 40 грн" },
-    { name: "Риба", description: "Рибні страви та свіжа охолоджена риба на додаток до раків.", price: "від 120 грн" }
-  ],
-  deliveryText: "Доставка по Києву 250 грн при замовленні від 3 кг варених або 5 живих — доставка безкоштовно.",
-  workingHours: "Працюємо щодня з 10:00 до 20:00"
-};
-
-// Загрузити дані з localStorage або використати стандартні
-function loadSiteData() {
-  const saved = localStorage.getItem('siteData');
-  return saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(defaultData));
-}
-
 // Ініціалізація при загрузці сторінки
 document.addEventListener('DOMContentLoaded', initializeSite);
 
-function initializeSite() {
-  updatePricesTables();
-  updateExtras();
-  updateDeliveryText();
-  updateWorkingHours();
+async function initializeSite() {
+  // Спочатку завантажуємо дані з Firebase
+  const data = await loadDataFromFirebase();
+  updatePricesTables(data);
+  updateExtras(data);
+  updateDeliveryText(data);
+  updateWorkingHours(data);
+
+  // Потім слухаємо зміни в реальному часі
+  watchDataChanges((updatedData) => {
+    updatePricesTables(updatedData);
+    updateExtras(updatedData);
+    updateDeliveryText(updatedData);
+    updateWorkingHours(updatedData);
+    console.log('✅ Дані оновилися на сайті!');
+  });
 }
 
 // Обновить таблицы цен
-function updatePricesTables() {
-  const data = loadSiteData();
-
+function updatePricesTables(data) {
   // Живі раки
   const liveTable = document.querySelector('#live .price-table tbody');
   if (liveTable) {
@@ -63,8 +45,7 @@ function updatePricesTables() {
 }
 
 // Обновить доповнення
-function updateExtras() {
-  const data = loadSiteData();
+function updateExtras(data) {
   const extrasGrid = document.querySelector('#extras .info-grid');
 
   if (extrasGrid) {
@@ -82,8 +63,7 @@ function updateExtras() {
 }
 
 // Обновить текст доставки
-function updateDeliveryText() {
-  const data = loadSiteData();
+function updateDeliveryText(data) {
   const deliverySection = document.querySelector('#delivery p');
   if (deliverySection) {
     deliverySection.textContent = data.deliveryText;
@@ -91,8 +71,7 @@ function updateDeliveryText() {
 }
 
 // Обновить часы роботы
-function updateWorkingHours() {
-  const data = loadSiteData();
+function updateWorkingHours(data) {
   const hoursElement = document.querySelector('.working-hours');
   if (hoursElement) {
     hoursElement.textContent = data.workingHours;

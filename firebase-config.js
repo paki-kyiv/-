@@ -1,0 +1,72 @@
+// Firebase конфигурація
+const firebaseConfig = {
+  apiKey: "AIzaSyBDH-xxxxxxxxxxx", // ЗАМІНІТЬ на ваш API Key
+  authDomain: "paki-kyiv.firebaseapp.com",
+  databaseURL: "https://paki-kyiv-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "paki-kyiv",
+  storageBucket: "paki-kyiv.appspot.com",
+  messagingSenderId: "123456789",
+  appId: "1:123456789:web:xxxxx"
+};
+
+// Ініціалізація Firebase
+if (firebase && !firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+const db = firebase.database();
+
+// Загрузить данные с сервера
+async function loadDataFromFirebase() {
+  try {
+    const snapshot = await db.ref('siteData').once('value');
+    const data = snapshot.val();
+    return data || getDefaultData();
+  } catch (error) {
+    console.log('Firebase недоступен, используем локальные данные:', error);
+    return getDefaultData();
+  }
+}
+
+// Сохранить данные на сервер
+async function saveDataToFirebase(data) {
+  try {
+    await db.ref('siteData').set(data);
+    return true;
+  } catch (error) {
+    console.error('Ошибка сохранения в Firebase:', error);
+    return false;
+  }
+}
+
+// Слушать изменения в реальном времени
+function watchDataChanges(callback) {
+  db.ref('siteData').on('value', (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+      callback(data);
+    }
+  });
+}
+
+// Стандартные данные
+function getDefaultData() {
+  return {
+    live: [
+      { weight: "500 г", price: "450 грн" },
+      { weight: "1 кг", price: "850 грн" },
+      { weight: "2 кг", price: "1600 грн" }
+    ],
+    cooked: [
+      { portion: "1 кг", price: "1500 грн" },
+      { portion: "3 кг", price: "4000 грн" },
+      { portion: "5 кг", price: "6000 грн" }
+    ],
+    extras: [
+      { name: "Пиво", description: "Холодне пиво до раків. Відмінний варіант для компанії.", price: "від 60 грн за пляшку" },
+      { name: "Закуски", description: "До пива та раків: солоні крекери, горішки, лимон.", price: "від 40 грн" },
+      { name: "Риба", description: "Рибні страви та свіжа охолоджена риба на додаток до раків.", price: "від 120 грн" }
+    ],
+    deliveryText: "Доставка по Києву 250 грн при замовленні від 3 кг варених або 5 живих — доставка безкоштовно.",
+    workingHours: "Працюємо щодня з 10:00 до 20:00"
+  };
+}

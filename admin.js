@@ -1,33 +1,25 @@
-// Стандартні дані
-const defaultData = {
-  live: [
-    { weight: "500 г", price: "450 грн" },
-    { weight: "1 кг", price: "850 грн" },
-    { weight: "2 кг", price: "1600 грн" }
-  ],
-  cooked: [
-    { portion: "1 кг", price: "1500 грн" },
-    { portion: "3 кг", price: "4000 грн" },
-    { portion: "5 кг", price: "6000 грн" }
-  ],
-  extras: [
-    { name: "Пиво", description: "Холодне пиво до раків. Відмінний варіант для компанії.", price: "від 60 грн за пляшку" },
-    { name: "Закуски", description: "До пива та раків: солоні крекери, горішки, лимон.", price: "від 40 грн" },
-    { name: "Риба", description: "Рибні страви та свіжа охолоджена риба на додаток до раків.", price: "від 120 грн" }
-  ],
-  deliveryText: "Доставка по Києву 250 грн при замовленні від 3 кг варених або 5 живих — доставка безкоштовно.",
-  workingHours: "Працюємо щодня з 10:00 до 20:00"
-};
+// Загрузити дані з Firebase
+let currentData = null;
 
-// Загрузити дані з localStorage або використати стандартні
-function loadData() {
-  const saved = localStorage.getItem('siteData');
-  return saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(defaultData));
+async function loadData() {
+  try {
+    currentData = await loadDataFromFirebase();
+  } catch (error) {
+    console.error('Ошибка загрузки:', error);
+    currentData = getDefaultData();
+  }
+  return currentData;
 }
 
-// Зберегти дані в localStorage
-function saveData(data) {
-  localStorage.setItem('siteData', JSON.stringify(data));
+// Зберегти дані в Firebase
+async function saveData(data) {
+  currentData = data;
+  const success = await saveDataToFirebase(data);
+  if (success) {
+    showMessage('✅ Дані синхронізовані з хмарою!', 'success');
+  } else {
+    showMessage('⚠️ Помилка синхронізації. Дані збережені локально.', 'error');
+  }
 }
 
 // Показати повідомлення
@@ -41,8 +33,8 @@ function showMessage(text, type) {
 }
 
 // Рендер живих раків
-function renderLive() {
-  const data = loadData();
+async function renderLive() {
+  const data = await loadData();
   const container = document.getElementById('liveContainer');
   container.innerHTML = '';
 
@@ -65,31 +57,31 @@ function renderLive() {
 }
 
 // Обновить живых раков
-function updateLive(index, field, value) {
-  const data = loadData();
+async function updateLive(index, field, value) {
+  const data = await loadData();
   data.live[index][field] = value;
-  saveData(data);
+  await saveData(data);
 }
 
 // Видалити живих раків
-function deleteLive(index) {
-  const data = loadData();
+async function deleteLive(index) {
+  const data = await loadData();
   data.live.splice(index, 1);
-  saveData(data);
+  await saveData(data);
   renderLive();
 }
 
 // Додати живих раків
-function addLivePrice() {
-  const data = loadData();
+async function addLivePrice() {
+  const data = await loadData();
   data.live.push({ weight: "", price: "" });
-  saveData(data);
+  await saveData(data);
   renderLive();
 }
 
 // Рендер варених раків
-function renderCooked() {
-  const data = loadData();
+async function renderCooked() {
+  const data = await loadData();
   const container = document.getElementById('cookedContainer');
   container.innerHTML = '';
 
@@ -112,31 +104,31 @@ function renderCooked() {
 }
 
 // Обновить варених раків
-function updateCooked(index, field, value) {
-  const data = loadData();
+async function updateCooked(index, field, value) {
+  const data = await loadData();
   data.cooked[index][field] = value;
-  saveData(data);
+  await saveData(data);
 }
 
 // Видалити варених раків
-function deleteCooked(index) {
-  const data = loadData();
+async function deleteCooked(index) {
+  const data = await loadData();
   data.cooked.splice(index, 1);
-  saveData(data);
+  await saveData(data);
   renderCooked();
 }
 
 // Додати варених раків
-function addCookedPrice() {
-  const data = loadData();
+async function addCookedPrice() {
+  const data = await loadData();
   data.cooked.push({ portion: "", price: "" });
-  saveData(data);
+  await saveData(data);
   renderCooked();
 }
 
 // Рендер доповнень
-function renderExtras() {
-  const data = loadData();
+async function renderExtras() {
+  const data = await loadData();
   const container = document.getElementById('extrasContainer');
   container.innerHTML = '';
 
@@ -165,64 +157,65 @@ function renderExtras() {
 }
 
 // Обновить доповнення
-function updateExtra(index, field, value) {
-  const data = loadData();
+async function updateExtra(index, field, value) {
+  const data = await loadData();
   data.extras[index][field] = value;
-  saveData(data);
+  await saveData(data);
 }
 
 // Видалити доповнення
-function deleteExtra(index) {
-  const data = loadData();
+async function deleteExtra(index) {
+  const data = await loadData();
   data.extras.splice(index, 1);
-  saveData(data);
+  await saveData(data);
   renderExtras();
 }
 
 // Додати доповнення
-function addExtra() {
-  const data = loadData();
+async function addExtra() {
+  const data = await loadData();
   data.extras.push({ name: "", description: "", price: "" });
-  saveData(data);
+  await saveData(data);
   renderExtras();
 }
 
 // Зберегти всі зміни і показати повідомлення
-function saveAllChanges() {
+async function saveAllChanges() {
   // Оновити тексти
-  const data = loadData();
+  const data = await loadData();
   data.deliveryText = document.getElementById('deliveryText').value;
   data.workingHours = document.getElementById('workingHours').value;
-  saveData(data);
-
-  showMessage('✅ Усі зміни успішно збережені!', 'success');
-
-  // Перезавантажити основний сайт якщо він відкритий
-  const mainWindow = window.opener;
-  if (mainWindow) {
-    mainWindow.location.reload();
-  }
+  await saveData(data);
 }
 
 // Повернути стандартні ціни
-function resetToDefaults() {
+async function resetToDefaults() {
   if (confirm('Ви впевнені? Усі ціни будуть повернені до стандартних.')) {
-    saveData(JSON.parse(JSON.stringify(defaultData)));
+    const defaultData = getDefaultData();
+    await saveData(defaultData);
     renderAll();
     showMessage('✅ Стандартні ціни відновлені!', 'success');
   }
 }
 
 // Рендер все
-function renderAll() {
-  renderLive();
-  renderCooked();
-  renderExtras();
+async function renderAll() {
+  await renderLive();
+  await renderCooked();
+  await renderExtras();
 
-  const data = loadData();
+  const data = await loadData();
   document.getElementById('deliveryText').value = data.deliveryText;
   document.getElementById('workingHours').value = data.workingHours;
 }
 
 // Ініціалізація при загрузці
 document.addEventListener('DOMContentLoaded', renderAll);
+
+// Слухати зміни з інших вкладок/пристроїв в реальному часі
+if (typeof watchDataChanges !== 'undefined') {
+  watchDataChanges(() => {
+    console.log('Дані оновилися на іншому пристрої, перезавантажуємо...');
+    renderAll();
+  });
+}
