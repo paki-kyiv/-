@@ -32,10 +32,10 @@ async function loadDataFromFirebase() {
 async function saveDataToFirebase(data) {
   try {
     await db.ref('siteData').set(data);
-    return true;
+    return { success: true };
   } catch (error) {
     console.error('Ошибка сохранения в Firebase:', error);
-    return false;
+    return { success: false, message: error.message || String(error) };
   }
 }
 

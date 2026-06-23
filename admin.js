@@ -14,11 +14,14 @@ async function loadData() {
 // Зберегти дані в Firebase
 async function saveData(data) {
   currentData = data;
-  const success = await saveDataToFirebase(data);
-  if (success) {
+  const result = await saveDataToFirebase(data);
+  if (result && result.success) {
     showMessage('✅ Дані синхронізовані з хмарою!', 'success');
+    return true;
   } else {
-    showMessage('⚠️ Помилка синхронізації. Дані збережені локально.', 'error');
+    const message = result && result.message ? `: ${result.message}` : '';
+    showMessage(`⚠️ Помилка синхронізації${message}`, 'error');
+    return false;
   }
 }
 
@@ -67,16 +70,16 @@ async function updateLive(index, field, value) {
 async function deleteLive(index) {
   const data = await loadData();
   data.live.splice(index, 1);
-  await saveData(data);
-  renderLive();
+  const saved = await saveData(data);
+  if (saved) renderLive();
 }
 
 // Додати живих раків
 async function addLivePrice() {
   const data = await loadData();
   data.live.push({ weight: "", price: "" });
-  await saveData(data);
-  renderLive();
+  const saved = await saveData(data);
+  if (saved) renderLive();
 }
 
 // Рендер варених раків
@@ -114,16 +117,16 @@ async function updateCooked(index, field, value) {
 async function deleteCooked(index) {
   const data = await loadData();
   data.cooked.splice(index, 1);
-  await saveData(data);
-  renderCooked();
+  const saved = await saveData(data);
+  if (saved) renderCooked();
 }
 
 // Додати варених раків
 async function addCookedPrice() {
   const data = await loadData();
   data.cooked.push({ portion: "", price: "" });
-  await saveData(data);
-  renderCooked();
+  const saved = await saveData(data);
+  if (saved) renderCooked();
 }
 
 // Рендер доповнень
@@ -167,16 +170,16 @@ async function updateExtra(index, field, value) {
 async function deleteExtra(index) {
   const data = await loadData();
   data.extras.splice(index, 1);
-  await saveData(data);
-  renderExtras();
+  const saved = await saveData(data);
+  if (saved) renderExtras();
 }
 
 // Додати доповнення
 async function addExtra() {
   const data = await loadData();
   data.extras.push({ name: "", description: "", price: "" });
-  await saveData(data);
-  renderExtras();
+  const saved = await saveData(data);
+  if (saved) renderExtras();
 }
 
 // Зберегти всі зміни і показати повідомлення
