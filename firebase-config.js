@@ -10,37 +10,65 @@ const firebaseConfig = {
   measurementId: "G-ZC83D6RNC4"
 };
 
-// Ініціалізація Firebase
-if (firebase && !firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
+let db = null;
+
+// Ініціалізація Firebase з перевіркою
+try {
+  if (typeof firebase !== 'undefined') {
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    db = firebase.database();
+    console.log('✅ Firebase ініціалізовано успішно');
+  } else {
+    console.warn('⚠️ Firebase SDK не завантажено, буду використовувати локальні дані');
+  }
+} catch (error) {
+  console.error('❌ Ошибка инициализации Firebase:', error);
 }
-const db = firebase.database();
 
 // Загрузить данные с сервера
 async function loadDataFromFirebase() {
+  if (!db) {
+    console.warn('Firebase не инициализирован, используем стандартные данные');
+    return getDefaultData();
+  }
+
   try {
     const snapshot = await db.ref('siteData').once('value');
     const data = snapshot.val();
+    console.log('✅ Данные загружены из Firebase');
     return data || getDefaultData();
   } catch (error) {
-    console.log('Firebase недоступен, используем локальные данные:', error);
+    console.warn('⚠️ Firebase недоступен, используем локальные данные:', error);
     return getDefaultData();
   }
 }
 
 // Сохранить данные на сервер
 async function saveDataToFirebase(data) {
+  if (!db) {
+    console.warn('⚠️ Firebase не инициализирован! Данные не сохранены.');
+    return { success: false, message: 'Firebase недоступен' };
+  }
+
   try {
     await db.ref('siteData').set(data);
+    console.log('✅ Данные сохранены в Firebase');
     return { success: true };
   } catch (error) {
-    console.error('Ошибка сохранения в Firebase:', error);
+    console.error('❌ Ошибка сохранения в Firebase:', error);
     return { success: false, message: error.message || String(error) };
   }
 }
 
 // Слушать изменения в реальном времени
 function watchDataChanges(callback) {
+  if (!db) {
+    console.warn('⚠️ Firebase не инициализирован, изменения не будут отслеживаться');
+    return;
+  }
+
   db.ref('siteData').on('value', (snapshot) => {
     const data = snapshot.val();
     if (data) {

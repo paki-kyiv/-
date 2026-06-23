@@ -2,13 +2,24 @@
 document.addEventListener('DOMContentLoaded', initializeSite);
 
 async function initializeSite() {
-  const data = await loadDataFromFirebase() || getDefaultData();
-  updateAllSections(data);
+  try {
+    console.log('🌍 Завантаження сайту...');
+    
+    if (typeof loadDataFromFirebase !== 'function') {
+      throw new Error('firebase-config.js не завантажено!');
+    }
+    
+    const data = await loadDataFromFirebase() || getDefaultData();
+    updateAllSections(data);
+    console.log('✅ Сайт завантажено успішно!');
 
-  watchDataChanges((updatedData) => {
-    updateAllSections(updatedData);
-    console.log('✅ Дані оновилися на сайті!');
-  });
+    watchDataChanges((updatedData) => {
+      updateAllSections(updatedData);
+      console.log('✅ Дані оновилися на сайті!');
+    });
+  } catch (error) {
+    console.error('❌ Ошибка инициализации сайта:', error);
+  }
 }
 
 // Обновить всі секції

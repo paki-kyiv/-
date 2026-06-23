@@ -2,19 +2,29 @@
 let currentData = null;
 
 async function loadData() {
-  const defaultData = getDefaultData();
-
   try {
-    const firebaseData = await loadDataFromFirebase();
-    currentData = {
-      ...defaultData,
-      ...firebaseData,
-      categories: Array.isArray(firebaseData?.categories) ? firebaseData.categories : defaultData.categories,
-      extras: Array.isArray(firebaseData?.extras) ? firebaseData.extras : defaultData.extras,
-    };
+    if (typeof getDefaultData !== 'function') {
+      throw new Error('firebase-config.js не завантажено!');
+    }
+    
+    const defaultData = getDefaultData();
+
+    try {
+      const firebaseData = await loadDataFromFirebase();
+      currentData = {
+        ...defaultData,
+        ...firebaseData,
+        categories: Array.isArray(firebaseData?.categories) ? firebaseData.categories : defaultData.categories,
+        extras: Array.isArray(firebaseData?.extras) ? firebaseData.extras : defaultData.extras,
+      };
+    } catch (error) {
+      console.warn('Firebase недоступен, используем локальные данные:', error);
+      currentData = defaultData;
+    }
   } catch (error) {
-    console.error('Ошибка загрузки:', error);
-    currentData = defaultData;
+    console.error('Критическая ошибка загрузки:', error);
+    alert('⚠️ Ошибка: firebase-config.js не загружен!');
+    throw error;
   }
 
   return currentData;
@@ -219,21 +229,30 @@ async function resetToDefaults() {
 
 // Рендер все
 async function renderAll() {
-  await renderCategories();
-  await renderExtras();
+  try {
+    await renderCategories();
+    await renderExtras();
 
-  const data = await loadData();
-  document.getElementById('deliveryText').value = data.deliveryText;
-  document.getElementById('workingHours').value = data.workingHours;
+    const data = await loadData();
+    document.getElementById('deliveryText').value = data.deliveryText || '';
+    document.getElementById('workingHours').value = data.workingHours || '';
+    
+    console.log('✅ Адміпанель завантажена успішно!');
+  } catch (error) {
+    console.error('❌ Ошибка инициализации админ-панели:', error);
+    alert('❌ Ошибка загрузки админ-панели. Проверьте консоль (F12)');
+  }
 }
 
 // Ініціалізація при загрузці
 document.addEventListener('DOMContentLoaded', renderAll);
 
 // Слухати зміни з інших вкладок/пристроїв в реальному часі
-if (typeof watchDataChanges !== 'undefined') {
-  watchDataChanges(() => {
-    console.log('Дані оновилися на іншому пристрої, перезавантажуємо...');
-    renderAll();
-  });
-}
+document.addEventListener('DOMContentLoaded', () => {
+  if (typeof watchDataChanges !== 'undefined') {
+    watchDataChanges(() => {
+      console.log('ℹ️ Дані оновилися на іншому пристрої, перезавантажуємо...');
+      renderAll();
+    });
+  }
+});
