@@ -2,12 +2,24 @@
 let currentData = null;
 
 async function loadData() {
+  const defaultData = getDefaultData();
+
   try {
-    currentData = await loadDataFromFirebase();
+    const firebaseData = await loadDataFromFirebase();
+    currentData = {
+      ...defaultData,
+      ...firebaseData,
+      live: Array.isArray(firebaseData?.live) ? firebaseData.live : defaultData.live,
+      cooked: Array.isArray(firebaseData?.cooked) ? firebaseData.cooked : defaultData.cooked,
+      extras: Array.isArray(firebaseData?.extras) ? firebaseData.extras : defaultData.extras,
+      mussels: Array.isArray(firebaseData?.mussels) ? firebaseData.mussels : defaultData.mussels,
+      recipes: Array.isArray(firebaseData?.recipes) ? firebaseData.recipes : defaultData.recipes,
+    };
   } catch (error) {
     console.error('Ошибка загрузки:', error);
-    currentData = getDefaultData();
+    currentData = defaultData;
   }
+
   return currentData;
 }
 
@@ -38,10 +50,11 @@ function showMessage(text, type) {
 // Рендер живих раків
 async function renderLive() {
   const data = await loadData();
+  const live = Array.isArray(data.live) ? data.live : [];
   const container = document.getElementById('liveContainer');
   container.innerHTML = '';
 
-  data.live.forEach((item, index) => {
+  live.forEach((item, index) => {
     const row = document.createElement('div');
     row.className = 'price-row';
     row.innerHTML = `
@@ -85,10 +98,11 @@ async function addLivePrice() {
 // Рендер варених раків
 async function renderCooked() {
   const data = await loadData();
+  const cooked = Array.isArray(data.cooked) ? data.cooked : [];
   const container = document.getElementById('cookedContainer');
   container.innerHTML = '';
 
-  data.cooked.forEach((item, index) => {
+  cooked.forEach((item, index) => {
     const row = document.createElement('div');
     row.className = 'price-row';
     row.innerHTML = `
@@ -132,10 +146,11 @@ async function addCookedPrice() {
 // Рендер доповнень
 async function renderExtras() {
   const data = await loadData();
+  const extras = Array.isArray(data.extras) ? data.extras : [];
   const container = document.getElementById('extrasContainer');
   container.innerHTML = '';
 
-  data.extras.forEach((item, index) => {
+  extras.forEach((item, index) => {
     const div = document.createElement('div');
     div.style.marginBottom = '1.5rem';
     div.innerHTML = `
@@ -182,6 +197,118 @@ async function addExtra() {
   if (saved) renderExtras();
 }
 
+// Рендер мідій
+async function renderMussels() {
+  const data = await loadData();
+  const mussels = Array.isArray(data.mussels) ? data.mussels : [];
+  const container = document.getElementById('musselsContainer');
+  container.innerHTML = '';
+
+  mussels.forEach((item, index) => {
+    const div = document.createElement('div');
+    div.style.marginBottom = '1.5rem';
+    div.innerHTML = `
+      <div style="background: rgba(0, 0, 0, 0.3); padding: 1rem; border-radius: 12px; border-left: 3px solid var(--accent-2);">
+        <div class="form-group">
+          <label>Назва</label>
+          <input type="text" placeholder="Наприклад: Мідії в часниковому соусі" value="${item.name}" onchange="updateMussel(${index}, 'name', this.value)">
+        </div>
+        <div class="form-group">
+          <label>Фото (URL)</label>
+          <input type="text" placeholder="Вставте посилання на фото" value="${item.photo}" onchange="updateMussel(${index}, 'photo', this.value)">
+        </div>
+        <div class="form-group">
+          <label>Опис</label>
+          <textarea placeholder="Опишіть мідії..." onchange="updateMussel(${index}, 'description', this.value)">${item.description}</textarea>
+        </div>
+        <div class="form-group">
+          <label>Ціна</label>
+          <input type="text" placeholder="Наприклад: від 120 грн" value="${item.price}" onchange="updateMussel(${index}, 'price', this.value)">
+        </div>
+        <button class="btn-delete" onclick="deleteMussel(${index})">Видалити</button>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+async function updateMussel(index, field, value) {
+  const data = await loadData();
+  data.mussels[index][field] = value;
+  await saveData(data);
+}
+
+async function deleteMussel(index) {
+  const data = await loadData();
+  data.mussels.splice(index, 1);
+  const saved = await saveData(data);
+  if (saved) renderMussels();
+}
+
+async function addMussel() {
+  const data = await loadData();
+  if (!Array.isArray(data.mussels)) data.mussels = [];
+  data.mussels.push({ name: "", photo: "", description: "", price: "" });
+  const saved = await saveData(data);
+  if (saved) renderMussels();
+}
+
+// Рендер рецептів
+async function renderRecipes() {
+  const data = await loadData();
+  const recipes = Array.isArray(data.recipes) ? data.recipes : [];
+  const container = document.getElementById('recipesContainer');
+  container.innerHTML = '';
+
+  recipes.forEach((item, index) => {
+    const div = document.createElement('div');
+    div.style.marginBottom = '1.5rem';
+    div.innerHTML = `
+      <div style="background: rgba(0, 0, 0, 0.3); padding: 1rem; border-radius: 12px; border-left: 3px solid var(--accent-2);">
+        <div class="form-group">
+          <label>Назва</label>
+          <input type="text" placeholder="Наприклад: Раки на пиві" value="${item.name}" onchange="updateRecipe(${index}, 'name', this.value)">
+        </div>
+        <div class="form-group">
+          <label>Фото (URL)</label>
+          <input type="text" placeholder="Вставте посилання на фото" value="${item.photo}" onchange="updateRecipe(${index}, 'photo', this.value)">
+        </div>
+        <div class="form-group">
+          <label>Опис</label>
+          <textarea placeholder="Опишіть рецепт..." onchange="updateRecipe(${index}, 'description', this.value)">${item.description}</textarea>
+        </div>
+        <div class="form-group">
+          <label>Ціна</label>
+          <input type="text" placeholder="Наприклад: від 180 грн" value="${item.price}" onchange="updateRecipe(${index}, 'price', this.value)">
+        </div>
+        <button class="btn-delete" onclick="deleteRecipe(${index})">Видалити</button>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+async function updateRecipe(index, field, value) {
+  const data = await loadData();
+  data.recipes[index][field] = value;
+  await saveData(data);
+}
+
+async function deleteRecipe(index) {
+  const data = await loadData();
+  data.recipes.splice(index, 1);
+  const saved = await saveData(data);
+  if (saved) renderRecipes();
+}
+
+async function addRecipe() {
+  const data = await loadData();
+  if (!Array.isArray(data.recipes)) data.recipes = [];
+  data.recipes.push({ name: "", photo: "", description: "", price: "" });
+  const saved = await saveData(data);
+  if (saved) renderRecipes();
+}
+
 // Зберегти всі зміни і показати повідомлення
 async function saveAllChanges() {
   // Оновити тексти
@@ -206,6 +333,8 @@ async function renderAll() {
   await renderLive();
   await renderCooked();
   await renderExtras();
+  await renderMussels();
+  await renderRecipes();
 
   const data = await loadData();
   document.getElementById('deliveryText').value = data.deliveryText;
