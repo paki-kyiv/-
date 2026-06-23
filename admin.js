@@ -78,18 +78,38 @@ async function renderCategories() {
         <label>ID категорії</label>
         <input type="text" placeholder="Наприклад: live" value="${category.id}" disabled style="opacity: 0.6;">
       </div>
+      <div class="form-group">
+        <label>Тип відображення</label>
+        <select onchange="updateCategoryType(${catIndex}, this.value)" style="padding: 0.75rem; border: 1px solid #333; border-radius: 8px; background: rgba(255, 255, 255, 0.05); color: white; font-family: inherit; font-size: 1rem;">
+          <option value="table" ${category.type === 'table' ? 'selected' : ''}>Таблиця (для раків)</option>
+          <option value="grid" ${category.type === 'grid' ? 'selected' : ''}>Сітка з фото (для рецептів)</option>
+        </select>
+      </div>
     `;
 
     let itemsHtml = '<h4 style="margin-top: 1rem;">Елементи:</h4>';
     const items = Array.isArray(category.items) ? category.items : [];
     items.forEach((item, itemIndex) => {
-      itemsHtml += `
+      const isGridType = category.type === 'grid';
+      
+      let itemInputHtml = `
         <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 0.5rem; margin-bottom: 0.75rem;">
-          <input type="text" placeholder="Назва/Вага" value="${item.name}" onchange="updateCategoryItem(${catIndex}, ${itemIndex}, 'name', this.value)" style="padding: 0.5rem; border-radius: 6px;">
+          <input type="text" placeholder="Назва" value="${item.name}" onchange="updateCategoryItem(${catIndex}, ${itemIndex}, 'name', this.value)" style="padding: 0.5rem; border-radius: 6px;">
           <input type="text" placeholder="Ціна" value="${item.price}" onchange="updateCategoryItem(${catIndex}, ${itemIndex}, 'price', this.value)" style="padding: 0.5rem; border-radius: 6px;">
           <button class="btn-delete" onclick="deleteCategoryItem(${catIndex}, ${itemIndex})">❌</button>
         </div>
       `;
+
+      if (isGridType) {
+        itemInputHtml += `
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.75rem;">
+            <input type="text" placeholder="URL фото" value="${item.photo || ''}" onchange="updateCategoryItem(${catIndex}, ${itemIndex}, 'photo', this.value)" style="padding: 0.5rem; border-radius: 6px;">
+            <textarea placeholder="Опис" onchange="updateCategoryItem(${catIndex}, ${itemIndex}, 'description', this.value)" style="padding: 0.5rem; border-radius: 6px; font-family: inherit;">${item.description || ''}</textarea>
+          </div>
+        `;
+      }
+
+      itemsHtml += itemInputHtml;
     });
 
     itemsHtml += `<button class="add-item-btn" onclick="addCategoryItem(${catIndex})" style="width: 100%; margin-top: 0.5rem;">+ Додати елемент</button>`;
@@ -112,6 +132,13 @@ async function updateCategoryTitle(catIndex, newTitle) {
   await renderCategories();
 }
 
+async function updateCategoryType(catIndex, newType) {
+  const data = await loadData();
+  data.categories[catIndex].type = newType;
+  await saveData(data);
+  await renderCategories();
+}
+
 async function updateCategoryItem(catIndex, itemIndex, field, value) {
   const data = await loadData();
   data.categories[catIndex].items[itemIndex][field] = value;
@@ -130,7 +157,7 @@ async function addCategoryItem(catIndex) {
   if (!Array.isArray(data.categories[catIndex].items)) {
     data.categories[catIndex].items = [];
   }
-  data.categories[catIndex].items.push({ name: '', price: '' });
+  data.categories[catIndex].items.push({ name: '', price: '', photo: '', description: '' });
   const saved = await saveData(data);
   if (saved) await renderCategories();
 }
@@ -143,7 +170,8 @@ async function addCategory() {
     id: newId,
     icon: '📦',
     title: 'Нова категорія',
-    items: [{ name: '', price: '' }]
+    type: 'table',
+    items: [{ name: '', price: '', photo: '', description: '' }]
   });
   const saved = await saveData(data);
   if (saved) await renderCategories();

@@ -85,6 +85,7 @@ function getDefaultData() {
         id: "live",
         icon: "🦞",
         title: "Живі раки",
+        type: "table",
         items: [
           { name: "500 г", price: "450 грн" },
           { name: "1 кг", price: "850 грн" },
@@ -95,6 +96,7 @@ function getDefaultData() {
         id: "cooked",
         icon: "🍲",
         title: "Варені раки",
+        type: "table",
         items: [
           { name: "1 кг", price: "1500 грн" },
           { name: "3 кг", price: "4000 грн" },
