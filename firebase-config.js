@@ -72,22 +72,6 @@ function getDefaultData() {
           { name: "3 кг", price: "4000 грн" },
           { name: "5 кг", price: "6000 грн" }
         ]
-      },
-      {
-        id: "mussels",
-        icon: "🦪",
-        title: "Мідії",
-        items: [
-          { name: "Мідії в часниковому соусі", price: "від 120 грн" }
-        ]
-      },
-      {
-        id: "recipes",
-        icon: "🥘",
-        title: "Рецепти раків",
-        items: [
-          { name: "Раки на пиві", price: "від 180 грн" }
-        ]
       }
     ],
     extras: [
