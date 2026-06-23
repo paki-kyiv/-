@@ -9,11 +9,8 @@ async function loadData() {
     currentData = {
       ...defaultData,
       ...firebaseData,
-      live: Array.isArray(firebaseData?.live) ? firebaseData.live : defaultData.live,
-      cooked: Array.isArray(firebaseData?.cooked) ? firebaseData.cooked : defaultData.cooked,
+      categories: Array.isArray(firebaseData?.categories) ? firebaseData.categories : defaultData.categories,
       extras: Array.isArray(firebaseData?.extras) ? firebaseData.extras : defaultData.extras,
-      mussels: Array.isArray(firebaseData?.mussels) ? firebaseData.mussels : defaultData.mussels,
-      recipes: Array.isArray(firebaseData?.recipes) ? firebaseData.recipes : defaultData.recipes,
     };
   } catch (error) {
     console.error('Ошибка загрузки:', error);
@@ -47,100 +44,108 @@ function showMessage(text, type) {
   }, 3000);
 }
 
-// Рендер живих раків
-async function renderLive() {
+// Рендер категорій
+async function renderCategories() {
   const data = await loadData();
-  const live = Array.isArray(data.live) ? data.live : [];
-  const container = document.getElementById('liveContainer');
+  const categories = Array.isArray(data.categories) ? data.categories : [];
+  const container = document.getElementById('categoriesContainer');
   container.innerHTML = '';
 
-  live.forEach((item, index) => {
-    const row = document.createElement('div');
-    row.className = 'price-row';
-    row.innerHTML = `
-      <div>
-        <label>Вага</label>
-        <input type="text" placeholder="Наприклад: 500 г" value="${item.weight}" onchange="updateLive(${index}, 'weight', this.value)">
+  categories.forEach((category, catIndex) => {
+    const categoryDiv = document.createElement('div');
+    categoryDiv.style.marginBottom = '2rem';
+    categoryDiv.style.padding = '1.5rem';
+    categoryDiv.style.background = 'rgba(0, 0, 0, 0.5)';
+    categoryDiv.style.borderRadius = '12px';
+    categoryDiv.style.borderLeft = '4px solid var(--accent-2)';
+
+    const titleHtml = `
+      <div class="form-group">
+        <label>Назва категорії (з іконкою)</label>
+        <input type="text" placeholder="Наприклад: 🦞 Живі раки" value="${category.icon} ${category.title}" onchange="updateCategoryTitle(${catIndex}, this.value)">
       </div>
-      <div>
-        <label>Ціна</label>
-        <input type="text" placeholder="Наприклад: 450 грн" value="${item.price}" onchange="updateLive(${index}, 'price', this.value)">
+      <div class="form-group">
+        <label>ID категорії</label>
+        <input type="text" placeholder="Наприклад: live" value="${category.id}" disabled style="opacity: 0.6;">
       </div>
-      <button class="btn-delete" onclick="deleteLive(${index})">Видалити</button>
     `;
-    container.appendChild(row);
+
+    let itemsHtml = '<h4 style="margin-top: 1rem;">Елементи:</h4>';
+    const items = Array.isArray(category.items) ? category.items : [];
+    items.forEach((item, itemIndex) => {
+      itemsHtml += `
+        <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 0.5rem; margin-bottom: 0.75rem;">
+          <input type="text" placeholder="Назва/Вага" value="${item.name}" onchange="updateCategoryItem(${catIndex}, ${itemIndex}, 'name', this.value)" style="padding: 0.5rem; border-radius: 6px;">
+          <input type="text" placeholder="Ціна" value="${item.price}" onchange="updateCategoryItem(${catIndex}, ${itemIndex}, 'price', this.value)" style="padding: 0.5rem; border-radius: 6px;">
+          <button class="btn-delete" onclick="deleteCategoryItem(${catIndex}, ${itemIndex})">❌</button>
+        </div>
+      `;
+    });
+
+    itemsHtml += `<button class="add-item-btn" onclick="addCategoryItem(${catIndex})" style="width: 100%; margin-top: 0.5rem;">+ Додати елемент</button>`;
+
+    const deleteBtn = `<button class="btn-delete" onclick="deleteCategory(${catIndex})" style="width: 100%; margin-top: 1rem;">🗑️ Видалити категорію</button>`;
+
+    categoryDiv.innerHTML = titleHtml + itemsHtml + deleteBtn;
+    container.appendChild(categoryDiv);
   });
 }
 
-// Обновить живых раков
-async function updateLive(index, field, value) {
+async function updateCategoryTitle(catIndex, newTitle) {
   const data = await loadData();
-  data.live[index][field] = value;
+  const parts = newTitle.trim().split(' ');
+  const icon = parts[0];
+  const title = parts.slice(1).join(' ');
+  data.categories[catIndex].icon = icon;
+  data.categories[catIndex].title = title;
+  await saveData(data);
+  await renderCategories();
+}
+
+async function updateCategoryItem(catIndex, itemIndex, field, value) {
+  const data = await loadData();
+  data.categories[catIndex].items[itemIndex][field] = value;
   await saveData(data);
 }
 
-// Видалити живих раків
-async function deleteLive(index) {
+async function deleteCategoryItem(catIndex, itemIndex) {
   const data = await loadData();
-  data.live.splice(index, 1);
-  const saved = await saveData(data);
-  if (saved) renderLive();
+  data.categories[catIndex].items.splice(itemIndex, 1);
+  await saveData(data);
+  await renderCategories();
 }
 
-// Додати живих раків
-async function addLivePrice() {
+async function addCategoryItem(catIndex) {
   const data = await loadData();
-  data.live.push({ weight: "", price: "" });
+  if (!Array.isArray(data.categories[catIndex].items)) {
+    data.categories[catIndex].items = [];
+  }
+  data.categories[catIndex].items.push({ name: '', price: '' });
   const saved = await saveData(data);
-  if (saved) renderLive();
+  if (saved) await renderCategories();
 }
 
-// Рендер варених раків
-async function renderCooked() {
+async function addCategory() {
   const data = await loadData();
-  const cooked = Array.isArray(data.cooked) ? data.cooked : [];
-  const container = document.getElementById('cookedContainer');
-  container.innerHTML = '';
-
-  cooked.forEach((item, index) => {
-    const row = document.createElement('div');
-    row.className = 'price-row';
-    row.innerHTML = `
-      <div>
-        <label>Порція</label>
-        <input type="text" placeholder="Наприклад: 1 кг" value="${item.portion}" onchange="updateCooked(${index}, 'portion', this.value)">
-      </div>
-      <div>
-        <label>Ціна</label>
-        <input type="text" placeholder="Наприклад: 1500 грн" value="${item.price}" onchange="updateCooked(${index}, 'price', this.value)">
-      </div>
-      <button class="btn-delete" onclick="deleteCooked(${index})">Видалити</button>
-    `;
-    container.appendChild(row);
+  if (!Array.isArray(data.categories)) data.categories = [];
+  const newId = 'cat_' + Date.now();
+  data.categories.push({
+    id: newId,
+    icon: '📦',
+    title: 'Нова категорія',
+    items: [{ name: '', price: '' }]
   });
-}
-
-// Обновить варених раків
-async function updateCooked(index, field, value) {
-  const data = await loadData();
-  data.cooked[index][field] = value;
-  await saveData(data);
-}
-
-// Видалити варених раків
-async function deleteCooked(index) {
-  const data = await loadData();
-  data.cooked.splice(index, 1);
   const saved = await saveData(data);
-  if (saved) renderCooked();
+  if (saved) await renderCategories();
 }
 
-// Додати варених раків
-async function addCookedPrice() {
-  const data = await loadData();
-  data.cooked.push({ portion: "", price: "" });
-  const saved = await saveData(data);
-  if (saved) renderCooked();
+async function deleteCategory(catIndex) {
+  if (confirm('Видалити цю категорію?')) {
+    const data = await loadData();
+    data.categories.splice(catIndex, 1);
+    const saved = await saveData(data);
+    if (saved) await renderCategories();
+  }
 }
 
 // Рендер доповнень
@@ -174,144 +179,28 @@ async function renderExtras() {
   });
 }
 
-// Обновить доповнення
 async function updateExtra(index, field, value) {
   const data = await loadData();
   data.extras[index][field] = value;
   await saveData(data);
 }
 
-// Видалити доповнення
 async function deleteExtra(index) {
   const data = await loadData();
   data.extras.splice(index, 1);
   const saved = await saveData(data);
-  if (saved) renderExtras();
+  if (saved) await renderExtras();
 }
 
-// Додати доповнення
 async function addExtra() {
   const data = await loadData();
-  data.extras.push({ name: "", description: "", price: "" });
+  data.extras.push({ name: '', description: '', price: '' });
   const saved = await saveData(data);
-  if (saved) renderExtras();
-}
-
-// Рендер мідій
-async function renderMussels() {
-  const data = await loadData();
-  const mussels = Array.isArray(data.mussels) ? data.mussels : [];
-  const container = document.getElementById('musselsContainer');
-  container.innerHTML = '';
-
-  mussels.forEach((item, index) => {
-    const div = document.createElement('div');
-    div.style.marginBottom = '1.5rem';
-    div.innerHTML = `
-      <div style="background: rgba(0, 0, 0, 0.3); padding: 1rem; border-radius: 12px; border-left: 3px solid var(--accent-2);">
-        <div class="form-group">
-          <label>Назва</label>
-          <input type="text" placeholder="Наприклад: Мідії в часниковому соусі" value="${item.name}" onchange="updateMussel(${index}, 'name', this.value)">
-        </div>
-        <div class="form-group">
-          <label>Фото (URL)</label>
-          <input type="text" placeholder="Вставте посилання на фото" value="${item.photo}" onchange="updateMussel(${index}, 'photo', this.value)">
-        </div>
-        <div class="form-group">
-          <label>Опис</label>
-          <textarea placeholder="Опишіть мідії..." onchange="updateMussel(${index}, 'description', this.value)">${item.description}</textarea>
-        </div>
-        <div class="form-group">
-          <label>Ціна</label>
-          <input type="text" placeholder="Наприклад: від 120 грн" value="${item.price}" onchange="updateMussel(${index}, 'price', this.value)">
-        </div>
-        <button class="btn-delete" onclick="deleteMussel(${index})">Видалити</button>
-      </div>
-    `;
-    container.appendChild(div);
-  });
-}
-
-async function updateMussel(index, field, value) {
-  const data = await loadData();
-  data.mussels[index][field] = value;
-  await saveData(data);
-}
-
-async function deleteMussel(index) {
-  const data = await loadData();
-  data.mussels.splice(index, 1);
-  const saved = await saveData(data);
-  if (saved) renderMussels();
-}
-
-async function addMussel() {
-  const data = await loadData();
-  if (!Array.isArray(data.mussels)) data.mussels = [];
-  data.mussels.push({ name: "", photo: "", description: "", price: "" });
-  const saved = await saveData(data);
-  if (saved) renderMussels();
-}
-
-// Рендер рецептів
-async function renderRecipes() {
-  const data = await loadData();
-  const recipes = Array.isArray(data.recipes) ? data.recipes : [];
-  const container = document.getElementById('recipesContainer');
-  container.innerHTML = '';
-
-  recipes.forEach((item, index) => {
-    const div = document.createElement('div');
-    div.style.marginBottom = '1.5rem';
-    div.innerHTML = `
-      <div style="background: rgba(0, 0, 0, 0.3); padding: 1rem; border-radius: 12px; border-left: 3px solid var(--accent-2);">
-        <div class="form-group">
-          <label>Назва</label>
-          <input type="text" placeholder="Наприклад: Раки на пиві" value="${item.name}" onchange="updateRecipe(${index}, 'name', this.value)">
-        </div>
-        <div class="form-group">
-          <label>Фото (URL)</label>
-          <input type="text" placeholder="Вставте посилання на фото" value="${item.photo}" onchange="updateRecipe(${index}, 'photo', this.value)">
-        </div>
-        <div class="form-group">
-          <label>Опис</label>
-          <textarea placeholder="Опишіть рецепт..." onchange="updateRecipe(${index}, 'description', this.value)">${item.description}</textarea>
-        </div>
-        <div class="form-group">
-          <label>Ціна</label>
-          <input type="text" placeholder="Наприклад: від 180 грн" value="${item.price}" onchange="updateRecipe(${index}, 'price', this.value)">
-        </div>
-        <button class="btn-delete" onclick="deleteRecipe(${index})">Видалити</button>
-      </div>
-    `;
-    container.appendChild(div);
-  });
-}
-
-async function updateRecipe(index, field, value) {
-  const data = await loadData();
-  data.recipes[index][field] = value;
-  await saveData(data);
-}
-
-async function deleteRecipe(index) {
-  const data = await loadData();
-  data.recipes.splice(index, 1);
-  const saved = await saveData(data);
-  if (saved) renderRecipes();
-}
-
-async function addRecipe() {
-  const data = await loadData();
-  if (!Array.isArray(data.recipes)) data.recipes = [];
-  data.recipes.push({ name: "", photo: "", description: "", price: "" });
-  const saved = await saveData(data);
-  if (saved) renderRecipes();
+  if (saved) await renderExtras();
 }
 
 // Зберегти всі зміни і показати повідомлення
 async function saveAllChanges() {
-  // Оновити тексти
   const data = await loadData();
   data.deliveryText = document.getElementById('deliveryText').value;
   data.workingHours = document.getElementById('workingHours').value;
@@ -330,11 +219,8 @@ async function resetToDefaults() {
 
 // Рендер все
 async function renderAll() {
-  await renderLive();
-  await renderCooked();
+  await renderCategories();
   await renderExtras();
-  await renderMussels();
-  await renderRecipes();
 
   const data = await loadData();
   document.getElementById('deliveryText').value = data.deliveryText;

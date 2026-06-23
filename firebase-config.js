@@ -52,26 +52,48 @@ function watchDataChanges(callback) {
 // Стандартные данные
 function getDefaultData() {
   return {
-    live: [
-      { weight: "500 г", price: "450 грн" },
-      { weight: "1 кг", price: "850 грн" },
-      { weight: "2 кг", price: "1600 грн" }
-    ],
-    cooked: [
-      { portion: "1 кг", price: "1500 грн" },
-      { portion: "3 кг", price: "4000 грн" },
-      { portion: "5 кг", price: "6000 грн" }
+    categories: [
+      {
+        id: "live",
+        icon: "🦞",
+        title: "Живі раки",
+        items: [
+          { name: "500 г", price: "450 грн" },
+          { name: "1 кг", price: "850 грн" },
+          { name: "2 кг", price: "1600 грн" }
+        ]
+      },
+      {
+        id: "cooked",
+        icon: "🍲",
+        title: "Варені раки",
+        items: [
+          { name: "1 кг", price: "1500 грн" },
+          { name: "3 кг", price: "4000 грн" },
+          { name: "5 кг", price: "6000 грн" }
+        ]
+      },
+      {
+        id: "mussels",
+        icon: "🦪",
+        title: "Мідії",
+        items: [
+          { name: "Мідії в часниковому соусі", price: "від 120 грн" }
+        ]
+      },
+      {
+        id: "recipes",
+        icon: "🥘",
+        title: "Рецепти раків",
+        items: [
+          { name: "Раки на пиві", price: "від 180 грн" }
+        ]
+      }
     ],
     extras: [
       { name: "Пиво", description: "Холодне пиво до раків. Відмінний варіант для компанії.", price: "від 60 грн за пляшку" },
       { name: "Закуски", description: "До пива та раків: солоні крекери, горішки, лимон.", price: "від 40 грн" },
       { name: "Риба", description: "Рибні страви та свіжа охолоджена риба на додаток до раків.", price: "від 120 грн" }
-    ],
-    mussels: [
-      { name: "Мідії в часниковому соусі", photo: "", description: "Соковиті мідії, обсмажені з часником і зеленню.", price: "від 120 грн" }
-    ],
-    recipes: [
-      { name: "Раки на пиві", photo: "", description: "Класичний рецепт з пивом, часником та спеціями.", price: "від 180 грн" }
     ],
     deliveryText: "Доставка по Києву 250 грн при замовленні від 3 кг варених або 5 живих — доставка безкоштовно.",
     workingHours: "Працюємо щодня з 10:00 до 20:00"
