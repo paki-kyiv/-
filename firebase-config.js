@@ -1,12 +1,13 @@
-// Firebase конфигурація
+// Firebase конфігурація
 const firebaseConfig = {
-  apiKey: "AIzaSyBDH-xxxxxxxxxxx", // ЗАМІНІТЬ на ваш API Key
+  apiKey: "AIzaSyDV_CUb_luEGCTN9J9F7Yi8Ibyz-C9UChY",
   authDomain: "paki-kyiv.firebaseapp.com",
   databaseURL: "https://paki-kyiv-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "paki-kyiv",
-  storageBucket: "paki-kyiv.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "1:123456789:web:xxxxx"
+  storageBucket: "paki-kyiv.firebasestorage.app",
+  messagingSenderId: "839898534733",
+  appId: "1:839898534733:web:2248bd983c2062e9f41d04",
+  measurementId: "G-ZC83D6RNC4"
 };
 
 // Ініціалізація Firebase
